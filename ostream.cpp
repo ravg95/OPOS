@@ -89,7 +89,12 @@
 
 	void ostream::WriteString(const char* string)
 	{
-		Write(string, strlen(string));
+		size_t len = 0;
+		while (string[len])
+		{
+			PutChar(string[len])
+			len++;
+		}
 	}
 
 ostream& operator<<(ostream& s, const char* str) {
