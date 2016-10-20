@@ -4,11 +4,11 @@
 #include "stdint.h"
 
 	uint8_t ostream::GetColor(enum vga_color fg, enum vga_color bg) {
-		return fg | bg << 4;
+		return fg | (bg << 4);
 	}
 
 	uint16_t ostream::GetRawEntry(unsigned char uc, uint8_t color) {
-		return (uint16_t)uc | (uint16_t)color << 8;
+		return uc | ((uint16_t)color << 8);
 	}
 
 	ostream::ostream(){
@@ -38,6 +38,7 @@
 		{
 			terminal_buffer[(VGA_HEIGHT - 1)*VGA_WIDTH + j] = ' ';
 		}
+		--terminal_row;
 	}
 
 	static size_t strlen(const char* str) //possibly move this somewhere else later
@@ -54,7 +55,10 @@
 		{
 			terminal_column = 0;
 			if (++terminal_row == VGA_HEIGHT)
+			{
 				ScrollDown();
+			}
+				
 		}
 		else 
 		{
@@ -63,7 +67,6 @@
 			{
 				terminal_column = 0;
 				if (++terminal_row == VGA_HEIGHT)
-					//terminal_row = 0;
 					ScrollDown();
 			}
 		}
