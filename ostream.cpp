@@ -30,12 +30,9 @@
 
 	void ostream::ScrollDown()
 	{
-		for (int i = 0; i<VGA_HEIGHT-1;i++)
+		for (int i = 0; i<(VGA_HEIGHT-1)*VGA_WIDTH;i++)
 		{
-			for (int j = 0; j <VGA_WIDTH; j++)
-			{
-				terminal_buffer[i*VGA_WIDTH+j] = terminal_buffer[(i+1)*(VGA_WIDTH)+j];
-			}
+			terminal_buffer[i] = terminal_buffer[i + VGA_WIDTH];
 		}
 		for (int j = 0;j < VGA_WIDTH;j++)
 		{
@@ -92,7 +89,7 @@
 		size_t len = 0;
 		while (string[len])
 		{
-			PutChar(string[len])
+			PutChar(string[len]);
 			len++;
 		}
 	}
