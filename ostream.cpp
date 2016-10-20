@@ -15,24 +15,30 @@
 	}
 	ostream& operator<<(ostream& s,const char* str){
 		for(int i = 0; str[i]!='\0'; i++){
-			if(str[i] == '\n'){
-				s.x=0;
-				s.y++;
-			} else {
-			s.VGA_buffer[WIDTH*s.y + s.x] = (s.VGA_buffer[WIDTH*s.y + s.x] & 0xFF00) | str[i];
+			
+		}
+		
+		return s;
+	}
+	ostream& operator<<(ostream& s,const int i){
+		return s<<(char)(i+'0');
+	}
+	ostream& operator<<(ostream& s,const char c){
+		if(c == '\n'){
+			s.x=0;
+			s.y++;
+		} else {
+			s.VGA_buffer[WIDTH*s.y + s.x] = (s.VGA_buffer[WIDTH*s.y + s.x] & 0xFF00) | c;
 			s.x++;
-			}
 		}
 		if(s.x>=WIDTH){
 			s.x -= WIDTH;
 			s.y++;
 		}
-		return s;
-	}
-	ostream& operator<<(ostream& s,const int i){
-		return s;
-	}
-	ostream& operator<<(ostream& s,const char c){
+		if(y>=HEIGHT){
+			s.scroll_down();
+			s.y--;
+		}
 		return s;
 	}
 	ostream& operator<<(ostream& s,const float f){
