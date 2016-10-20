@@ -1,6 +1,7 @@
 
-#include "types.h"
+#include <stdint.h>
 #include "ostream.h"
+#include "gdt.h"
 
 void delay(int countdown_limit){
 	volatile int w = 0;
@@ -16,6 +17,6 @@ extern "C" void kmain(const void* multiboot_struct, uint32_t magic_num){
 		osout<<"We are OS noobs: "<<(char)i<<'\n';
 		delay(100000);
 	}
-	
+	GlobalDescriptorTable gdt;
 	while(1);
 }

@@ -1,6 +1,6 @@
 #ifndef __OSTREAM_H
 #define __OSTREAM_H
-#include "types.h"
+#include <stdint.h>
 
 #define WIDTH 80
 #define HEIGHT 25
