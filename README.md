@@ -6,7 +6,7 @@ To configure your enviroment, please install the following packages:
 
 I think it's best to test our OS on virtualbox so you must additionally install:
 
-`$ apt install virtualbox grub-legacy xorriso`
+`$ apt install virtualbox xorriso`
 
 I have prepared a makefile with various options.
 first use:
