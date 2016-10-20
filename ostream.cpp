@@ -56,8 +56,10 @@
 		if (c == '\n')
 		{
 			terminal_column = 0;
-			if (++terminal_row == VGA_HEIGHT)
+			if (++terminal_row == VGA_HEIGHT){
+				--terminal_row;
 				ScrollDown();
+			}
 		}
 		else 
 		{
@@ -66,7 +68,7 @@
 			{
 				terminal_column = 0;
 				if (++terminal_row == VGA_HEIGHT)
-					//terminal_row = 0;
+					terminal_row--;
 					ScrollDown();
 			}
 		}
