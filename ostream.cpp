@@ -1,6 +1,5 @@
 
 #include "ostream.h"
-#include "types.h"
 
 
 
