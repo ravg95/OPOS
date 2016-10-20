@@ -37,6 +37,6 @@ clean:
 	
 run: iso
 	(killall VirtualBox && sleep 2) || true
-	VirtualBox --startvm "posOS" &
+	VirtualBox --startvm "OPOS" &
 
 	
