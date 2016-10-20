@@ -12,7 +12,7 @@ void delay(int countdown_limit) {
 
 extern "C" void kmain(const void* multiboot_struct, uint32_t magic_num) {
 	ostream osout = ostream();
-	for (int i = 0; i < 50; i++) {
+	for (int i = 0; i < 5000; i++) {
 		i %= 127;
 		osout << "We are OS noobs: " << (char)i+'a' << '\n';
 		delay(100000);

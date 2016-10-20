@@ -4,11 +4,11 @@
 #include "stdint.h"
 
 	uint8_t ostream::GetColor(enum vga_color fg, enum vga_color bg) {
-		return fg | bg << 4;
+		return fg | (bg << 4);
 	}
 
 	uint16_t ostream::GetRawEntry(unsigned char uc, uint8_t color) {
-		return (uint16_t)uc | (uint16_t)color << 8;
+		return uc | ((uint16_t)color << 8);
 	}
 
 	ostream::ostream(){
@@ -30,17 +30,14 @@
 
 	void ostream::ScrollDown()
 	{
-		for (int i = 0; i<VGA_HEIGHT-1;i++)
+		for (int i = 0; i<VGA_HEIGHT;i++)
 		{
 			for (int j = 0; j <VGA_WIDTH; j++)
 			{
-				terminal_buffer[i*VGA_WIDTH+j] = terminal_buffer[(i+1)*(VGA_WIDTH)+j];
+				terminal_buffer[i*VGA_WIDTH+j] = GetRawEntry((unsigned char)((terminal_buffer[(i+1)*(VGA_WIDTH)+j] & 0x00FF)), terminal_color) ; //to preserve bg color when copying an empty cell from the buffer
 			}
 		}
-		for (int j = 0;j < VGA_WIDTH;j++)
-		{
-			terminal_buffer[(VGA_HEIGHT - 1)*VGA_WIDTH + j] = ' ';
-		}
+		terminal_row--;
 	}
 
 	static size_t strlen(const char* str) //possibly move this somewhere else later
@@ -57,7 +54,6 @@
 		{
 			terminal_column = 0;
 			if (++terminal_row == VGA_HEIGHT){
-				--terminal_row;
 				ScrollDown();
 			}
 		}
@@ -68,7 +64,6 @@
 			{
 				terminal_column = 0;
 				if (++terminal_row == VGA_HEIGHT)
-					terminal_row--;
 					ScrollDown();
 			}
 		}
