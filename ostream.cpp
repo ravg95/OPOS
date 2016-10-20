@@ -15,13 +15,12 @@
 	}
 	ostream& operator<<(ostream& s,const char* str){
 		for(int i = 0; str[i]!='\0'; i++){
-			
+			s<<str[i];
 		}
-		
 		return s;
 	}
 	ostream& operator<<(ostream& s,const int i){
-		return s<<(char)(i+'0');
+		//not implemented yet
 	}
 	ostream& operator<<(ostream& s,const char c){
 		if(c == '\n'){
@@ -35,16 +34,23 @@
 			s.x -= WIDTH;
 			s.y++;
 		}
-		if(y>=HEIGHT){
+		if(s.y>=HEIGHT){
 			s.scroll_down();
 			s.y--;
 		}
 		return s;
 	}
 	ostream& operator<<(ostream& s,const float f){
+		//not implemented yet
 		return s;
 	}
 
 	void ostream::scroll_down(){
+		for(int i = 0; i<y*WIDTH;i+=WIDTH){
+			for(int j=0; j <WIDTH ; j++){
+				VGA_buffer[i +j] = VGA_buffer[i+WIDTH+j];
+			}
+			
+		}
 		
 	}
