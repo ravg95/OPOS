@@ -4,7 +4,7 @@ CXXFLAGS = -m32 -fno-use-cxa-atexit -nostdlib -fno-builtin -fno-rtti -fno-except
 ASMFLAGS = --32
 LDFLAGS = -melf_i386
 
-objects = ostream.o main.o loader.o gdt.o
+objects = ostream.o main.o loader.o gdt.o port.o
 
 %.o : %.cpp
 	g++ $(CXXFLAGS) -c -o $@ $<
