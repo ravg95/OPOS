@@ -40,12 +40,22 @@ osout<<"    /_/                           /___/      /___/                     \
 osout<<"\n";
 }
 
+typedef void (*constructor)();
+extern "C" constructor start_ctors;
+extern "C" constructor end_ctors;
+extern "C" void callConstructors(){
+	for(constructor * i = &start_ctors; i != &end_ctors; i++){
+		(*i)();
+	}
+}
+
 
 extern "C" void kmain(const void* multiboot_struct, uint32_t magic_num) {
 	
 	
 	printHelloMessage();
 	GlobalDescriptorTable gdt;
+	
 	InterruptManager interrupts(&gdt);
 	
 	interrupts.Activate();

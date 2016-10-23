@@ -1,6 +1,6 @@
 
 CFLAGS  = -m32 -fno-use-cxa-atexit -nostdlib -fno-builtin -fno-rtti -fno-exceptions -fno-leading-underscore -std=c99
-CXXFLAGS = -m32 -fno-use-cxa-atexit -nostdlib -fno-builtin -fno-rtti -fno-exceptions -fno-leading-underscore -O2
+CXXFLAGS = -m32 -fno-use-cxa-atexit -nostdlib -fno-builtin -fno-rtti -fno-exceptions -fno-leading-underscore
 ASMFLAGS = --32
 LDFLAGS = -melf_i386
 
@@ -17,8 +17,9 @@ objects = ostream.o main.o loader.o gdt.o port.o interruptstubs.o interrupts.o
 kernel.bin: linker.ld $(objects)
 	ld $(LDFLAGS) -T $< -o $@ $(objects)
 	
-	
-iso: kernel.bin
+iso: kernel.iso
+
+kernel.iso: kernel.bin
 	mkdir iso
 	mkdir iso/boot
 	mkdir iso/boot/grub
@@ -29,13 +30,13 @@ iso: kernel.bin
 	echo '	multiboot /boot/kernel.bin' >> iso/boot/grub/grub.cfg
 	echo '	boot' >> iso/boot/grub/grub.cfg
 	echo '}' >> iso/boot/grub/grub.cfg
-	grub-mkrescue --output=kernel.iso iso
+	grub-mkrescue --output=$@ iso
 	rm -rf iso
 
 clean:
 	rm -rf $(objects) kernel.bin kernel.iso
 	
-run: iso
+run: kernel.iso
 	(killall VirtualBox && sleep 2) || true
 	VirtualBox --startvm "OPOS" &
 
