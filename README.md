@@ -1,11 +1,6 @@
 # OPOS
 
 
-!!! To switch to opos, you must:
-- edit project_path/.git/config  (replace posOS in url with OPOS)
-- reconfigure VB
-- if you have time and it is important for you, rename your directories
-
 To configure your enviroment, please install the following packages:
 
 `$ apt install g++ binutils libc6-dev-i386`
@@ -31,4 +26,4 @@ If you do it, you will be able to run the system directly from the console just 
 
 `$ make run`
 
-MAKARON!
+MAKARON = SPAGHETTI CODE
