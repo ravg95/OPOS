@@ -54,11 +54,12 @@ extern "C" void kmain(const void* multiboot_struct, uint32_t magic_num) {
 	
 	
 	printHelloMessage();
-	GlobalDescriptorTable gdt;
+	//GlobalDescriptorTable gdt;
 	
-	InterruptManager interrupts(&gdt);
+	   IRQ irq;
+	   irq.install_irqs();
 	
-	interrupts.Activate();
+	//interrupts.Activate();
 
 	while (1){
 		delay(10000);

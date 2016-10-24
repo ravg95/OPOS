@@ -2,73 +2,180 @@
 #include "interrupts.h"
 #include "ostream.h"
 
-InterruptManager::GateDescriptor InterruptManager::interruptDescriptorTable[256];
+#define PIC_MASTER_CONTROL 0x20
+#define PIC_MASTER_MASK 0x21
+#define PIC_SLAVE_CONTROL 0xa0
+#define PIC_SLAVE_MASK 0xa1
 
-void InterruptManager::setInterruptDescriptorTableEntry(
-	uint8_t interruptNumber,
-	uint16_t codeSegmentSelectorOffset,
-	void (*handler)(),
-	uint8_t DescriptorPrivilegeLevel,
-	uint8_t DescriptorType) {
-		
-	const uint8_t IDT_DESC_PRESENT = 0x80;
-	
-	interruptDescriptorTable[interruptNumber].handlerAddressLowBits = ((uint32_t)handler) & 0xFFFF;
-	interruptDescriptorTable[interruptNumber].handlerAddressHighBits = (((uint32_t)handler) >> 16) & 0xFFFF;
-	interruptDescriptorTable[interruptNumber].gdt_codeSegmentSelector = codeSegmentSelectorOffset;
-	interruptDescriptorTable[interruptNumber].access = IDT_DESC_PRESENT | DescriptorType | ((DescriptorPrivilegeLevel&3)<<5);
-	interruptDescriptorTable[interruptNumber].reserved = 0;
-}
-		
-InterruptManager::InterruptManager(GlobalDescriptorTable* gdt):
-picMasterCommand(0x20),
-picMasterData(0x21),
-picSlaveCommand(0xA0),
-picSlaveData(0xA1)
+
+typedef void(*regs_func)(struct regs *r);
+
+
+
+/*Get all irq's*/
+extern "C" void irq0(void);
+extern "C" void irq1(void);
+extern "C" void irq2(void);
+extern "C" void irq3(void);
+extern "C" void irq4(void);
+extern "C" void irq5(void);
+extern "C" void irq6(void);
+extern "C" void irq7(void);
+extern "C" void irq8(void);
+extern "C" void irq9(void);
+extern "C" void irq10(void);
+extern "C" void irq11(void);
+extern "C" void irq12(void);
+extern "C" void irq13(void);
+extern "C" void irq14(void);
+extern "C" void irq15(void);
+
+
+extern void panic(const char* exception);
+
+regs_func irq_routines[16] = {
+    0,0,0,0,0,0,0,0
+   ,0,0,0,0,0,0,0,0
+};
+
+static Port8BitSlow master_command(0x29), master_data(0x21), slave_command(0xa0), slave_data(0xa1);
+
+//Basically a declaration of IDT_ENTRY in 
+//idt.c++
+struct idt_entry {
+    uint16_t base_lo;
+    uint16_t sel; // Kernel segment goes here.
+    uint8_t always0;
+    uint8_t flags; // Set using the table.
+    uint16_t base_hi;
+}__attribute__((packed));
+
+//Get the Exact IDT array from idt.c++
+extern struct idt_entry idt[256];
+
+static inline void idt_set_gate(uint8_t num, void(*handler)(void), uint16_t sel,
+             uint8_t flags) 
 {
-	
-	uint16_t CodeSegment = gdt->getCodeSegmentSelector();
-	const uint8_t IDT_INTERRUPT_GATE = 0xE;
-	
-	for(uint16_t i = 0; i < 256; i++) {
-		setInterruptDescriptorTableEntry(i, CodeSegment, &ignoreInterruptRequest, 0, IDT_INTERRUPT_GATE);
-	}
-	setInterruptDescriptorTableEntry(0x20, CodeSegment, &handleInterruptRequest0x00, 0, IDT_INTERRUPT_GATE);
-	setInterruptDescriptorTableEntry(0x21, CodeSegment, &handleInterruptRequest0x01, 0, IDT_INTERRUPT_GATE);
-	
-	picMasterCommand.Write(0x11);
-	picSlaveCommand.Write(0x11);
-	
-	picMasterData.Write(0x20);
-	picSlaveData.Write(0x28);
-	
-	picMasterData.Write(0x04);
-	picSlaveData.Write(0x02);
-	
-	picMasterData.Write(0x01);
-	picSlaveData.Write(0x01);
-	
-	picMasterData.Write(0x00);
-	picSlaveData.Write(0x00);
-	
-	InterruptDescriptorTablePointer idt;
-	idt.size = 256 * sizeof(GateDescriptor) -1;
-	idt.base = (uint32_t) interruptDescriptorTable;
-	
-	asm volatile("lidt %0": :"m"(idt));
-
+    idt[num].base_lo = (uintptr_t)handler >> 0 & 0xFFFF;
+    idt[num].base_hi = (uintptr_t)handler >> 16 & 0xffff;
+    idt[num].always0 = 0;
+    idt[num].sel = sel;
+    idt[num].flags = flags;
 }
 
-void InterruptManager::Activate(){
-	asm("sti");	
+IRQ::IRQ()
+{
+};
+IRQ::~IRQ(){};
+
+/* Normally, IRQs 0 to 7 are mapped to entries 8 to 15. This
+*  is a problem in protected mode, because IDT entry 8 is a
+*  Double Fault! Without remapping, every time IRQ0 fires,
+*  you get a Double Fault Exception, which is NOT actually
+*  what's happening. We send commands to the Programmable
+*  Interrupt Controller (PICs - also called the 8259's) in
+*  order to make IRQ0 to 15 be remapped to IDT entries 32 to
+*  47 */
+void IRQ::irq_remap()
+{
+
+        // ICW1 - begin initialization
+    master_command.Write(0x11);
+    slave_command.Write(0x11);
+
+    // Remap interrupts beyond 0x20 because the first 32 are cpu exceptions
+    master_data.Write(0x20);
+    slave_data.Write(0x28);
+
+    // ICW3 - setup cascading
+  master_data.Write(0x04);
+    slave_data.Write(0x02);
+
+    // ICW4 - environment info
+  master_data.Write(0x01);
+    slave_data.Write(0x01);
+
+    // mask interrupts
+  master_data.Write(0x00);
+    slave_data.Write(0x00);
 }
-InterruptManager::~InterruptManager(){
 
-}
-
-
-uint32_t InterruptManager::handleInterrupt(uint8_t interruptNumber, uint32_t esp){
+void install_handler_irq(int irq, regs_func handler)
+{
 	ostream osout = ostream();
-	osout<<("!!INTERRUPT!!");
-	return esp;
+   osout<<"\nIntstalling IRQ\n";
+    irq_routines[irq] = handler;
 }
+
+void uninstall_handler_irq(int irq)
+{
+   irq_routines[irq] = 0;
+} 
+
+
+
+
+/* First remap the interrupt controllers, and then we install
+*  the appropriate ISRs to the correct entries in the IDT. This
+*  is just like installing the exception handlers */
+
+void IRQ::install_irqs()
+{
+   this->irq_remap();
+    idt_set_gate(32, irq0, 0x08, 0x8E);
+    idt_set_gate(33, irq1, 0x08, 0x8E);
+    idt_set_gate(34, irq2, 0x08, 0x8E);
+    idt_set_gate(35, irq3, 0x08, 0x8E);
+    idt_set_gate(36, irq4, 0x08, 0x8E);
+    idt_set_gate(37, irq5, 0x08, 0x8E);
+    idt_set_gate(38, irq6, 0x08, 0x8E);
+    idt_set_gate(39, irq7, 0x08, 0x8E);
+    idt_set_gate(40, irq8, 0x08, 0x8E);
+    idt_set_gate(41, irq9, 0x08, 0x8E);
+    idt_set_gate(42, irq10, 0x08, 0x8E);
+    idt_set_gate(43, irq11, 0x08, 0x8E);
+    idt_set_gate(44, irq12, 0x08, 0x8E);
+    idt_set_gate(45, irq13, 0x08, 0x8E);
+    idt_set_gate(46, irq14, 0x08, 0x8E);    
+    idt_set_gate(47, irq15, 0x08, 0x8E);
+}
+
+/* Each of the IRQ ISRs point to this function, rather than
+*  the 'fault_handler' in 'isrs.c'. The IRQ Controllers need
+*  to be told when you are done servicing them, so you need
+*  to send them an "End of Interrupt" command (0x20). There
+*  are two 8259 chips: The first exists at 0x20, the second
+*  exists at 0xA0. If the second controller (an IRQ from 8 to
+*  15) gets an interrupt, you need to acknowledge the
+*  interrupt at BOTH controllers, otherwise, you only send
+*  an EOI command to the first controller. If you don't send
+*  an EOI, you won't raise any more IRQs */
+extern "C" void irq_handler(struct regs *r)
+{
+     /* This is a blank function pointer */
+    regs_func handler;
+
+    /* Find out if we have a custom handler to run for this
+    *  IRQ, and then finally, run it */
+    handler = irq_routines[r->int_no];
+    if (handler)
+    {
+        handler(r);
+    }
+
+
+    //irq_taskmanager->Schedule((CPUState*)r);
+
+    /* If the IDT entry that was invoked was greater than 40
+    *  (meaning IRQ8 - 15), then we need to send an EOI to
+    *  the slave controller */
+    if (r->int_no >= 8)
+    {
+        slave_command.Write(0x20);
+    }
+
+    /* In either case, we need to send an EOI to the master
+    *  interrupt controller too */
+    master_command.Write(0x20);
+}
+

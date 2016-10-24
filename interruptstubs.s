@@ -1,51 +1,46 @@
-.set IRQ_BASE, 0x20
-
 .section .text
+.extern irq_handler
 
-.extern _ZN16InterruptManager15handleInterruptEhj
-.global _ZN16InterruptManager22ignoreInterruptRequestEv
 
-.macro handleException num
-.global _ZN16InterruptManager16handleException\num\()Ev
-_ZN16InterruptManager16handleException\num\()Ev:
-	movb $\num, (interruptNumber)
-	jmp int_bottom
+.macro irq num
+.global irq\num\()
+irq\num\():
+	cli
+	push 0
+	push $\num
+	jmp common_handler_irq
 .endm
+            
+irq 0
+irq 1
+irq 2
+irq 3
+irq 4
+irq 5
+irq 6
+irq 7
+irq 8
+irq 9
+irq 10
+irq 11
+irq 12
+irq 13
+irq 14
+irq 15
 
-.macro handleInterruptRequest num
-.global _ZN16InterruptManager26handleInterruptRequest\num\()Ev
-_ZN16InterruptManager26handleInterruptRequest\num\()Ev:
-	movb $\num + IRQ_BASE, (interruptNumber)
-	jmp int_bottom
-.endm
+common_handler_irq:
+    # save registers
+            pusha
+            push %ds
+            push %esp
+    # call C++ Handler
+           call irq_handler
+           add %esp,4
+    # restore registers
+            pop %ds
+            popa
+            add %esp,8
+            iret
 
-handleInterruptRequest 0x00
-handleInterruptRequest 0x01
+#TODO FOR LOOP
 
-
-int_bottom:
-
-	pusha
-	pushl %ds
-	pushl %es
-	pushl %fs
-	pushl %gs
-
-	pushl %esp
-	push (interruptNumber)
-	call _ZN16InterruptManager15handleInterruptEhj
-	addl $5, %esp
-	movl %eax, %esp
-	
-	popl %gs
-	popl %fs
-	popl %es
-	popl %ds
-	popa
-	
-_ZN16InterruptManager22ignoreInterruptRequestEv:
-	
-	iret
-	
-.data
-	interruptNumber: .byte 0

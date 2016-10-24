@@ -1,51 +1,31 @@
+#ifndef _IRQ_H_
+#define _IRQ_H_ 1
 
-#ifndef __INTERRUPTS_H
-#define __INTERRUPTS_H
-#include "stdint.h"
 #include "port.h"
-#include "gdt.h"
+#include "stdint.h"
+	/* The state of the CPU when an interrupt is triggered. */
+struct regs {
+     uint32_t ds; /* pushed the segs last */
+     uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax; /* pushed by 'pusha' */
+     uint32_t int_no, err_code; /* our 'push byte #' and ecodes do this */
+     uint32_t eip, cs, eflags, useresp, ss; /* pushed by the processor automatically */
+};
 
-	class InterruptManager{
-	protected:
-		struct GateDescriptor{
-			uint16_t handlerAddressLowBits;
-			uint16_t gdt_codeSegmentSelector;
-			uint8_t reserved;
-			uint8_t access;
-			uint16_t handlerAddressHighBits;
-			
-		} __attribute__((packed));
-		
-		static GateDescriptor interruptDescriptorTable[256];
-		
-		struct InterruptDescriptorTablePointer {
-			uint16_t size;
-			uint32_t base;
-		} __attribute__((packed));
-		
-		static void setInterruptDescriptorTableEntry(
-		uint8_t interruptNumber,
-		uint16_t codeSegmentSelectorOffset,
-		void (*handler)(),
-			uint8_t DescriptorPrivilegeLevel,
-			uint8_t DescriptorType
-		);
-		
-		Port8BitSlow picMasterCommand;
-		Port8BitSlow picMasterData;
-		Port8BitSlow picSlaveCommand;
-		Port8BitSlow picSlaveData;
-	public:
-		
-		InterruptManager(GlobalDescriptorTable* gdt);
-		~InterruptManager();
-		void Activate();
-		static uint32_t handleInterrupt(uint8_t interruptNumber, uint32_t esp);
-		
-		static void ignoreInterruptRequest();
-		static void handleInterruptRequest0x00();
-		static void handleInterruptRequest0x01();
-	};
+
+class IRQ
+{
+
+public:
+	IRQ();
+	~IRQ();
+	void install_irqs();
+private:
+		void irq_remap();
+
+};
+	void install_handler_irq(int irq, void (*handler)(struct regs *r));	
+	void uninstall_handler_irq(int irq);	
+
 
 
 #endif
