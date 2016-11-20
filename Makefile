@@ -4,7 +4,7 @@ CXXFLAGS = -m32 -fno-use-cxa-atexit -nostdlib -fno-builtin -fno-rtti -fno-except
 ASMFLAGS = --32
 LDFLAGS = -melf_i386
 
-objects = ostream.o main.o loader.o gdt.o port.o interruptstubs.o interrupts.o
+objects = loader.o ostream.o main.o interrupts.o interruptstubs.o
 
 %.o : %.cpp
 	g++ $(CXXFLAGS) -c -o $@ $<
@@ -26,7 +26,7 @@ kernel.iso: kernel.bin
 	cp $< iso/boot/$<
 	echo 'set timeout=0' > iso/boot/grub/grub.cfg
 	echo 'set default=0' >> iso/boot/grub/grub.cfg
-	echo 'menuentry "posOS" {' >> iso/boot/grub/grub.cfg
+	echo 'menuentry "OPOS" {' >> iso/boot/grub/grub.cfg
 	echo '	multiboot /boot/kernel.bin' >> iso/boot/grub/grub.cfg
 	echo '	boot' >> iso/boot/grub/grub.cfg
 	echo '}' >> iso/boot/grub/grub.cfg

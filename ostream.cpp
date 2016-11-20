@@ -1,7 +1,7 @@
 
+#include "types.h"
 #include "ostream.h"
-#include "stddef.h"
-#include "stdint.h"
+
 
 	uint8_t ostream::GetColor(enum vga_color fg, enum vga_color bg) {
 		return fg | (bg << 4);
@@ -113,3 +113,4 @@ ostream& operator<<(ostream& s, const char c) {
 ostream& operator<<(ostream& s, const float f) {
 	return s;
 }
+

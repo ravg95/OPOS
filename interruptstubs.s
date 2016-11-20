@@ -1,51 +1,33 @@
-.set IRQ_BASE, 0x20
-
 .section .text
 
-.extern _ZN16InterruptManager15handleInterruptEhj
-.global _ZN16InterruptManager22ignoreInterruptRequestEv
 
-.macro handleException num
-.global _ZN16InterruptManager16handleException\num\()Ev
-_ZN16InterruptManager16handleException\num\()Ev:
-	movb $\num, (interruptNumber)
-	jmp int_bottom
-.endm
+.extern keyboard_handler_main
 
-.macro handleInterruptRequest num
-.global _ZN16InterruptManager26handleInterruptRequest\num\()Ev
-_ZN16InterruptManager26handleInterruptRequest\num\()Ev:
-	movb $\num + IRQ_BASE, (interruptNumber)
-	jmp int_bottom
-.endm
+.global load_idt
 
-handleInterruptRequest 0x00
-handleInterruptRequest 0x01
+.global keyboard_handler
 
+.global read_port
+.extern read_port
+.global write_port
+.extern write_port
 
-int_bottom:
+load_idt:
+	lidt 4(%esp)
+	sti
+	ret
 
-	pusha
-	pushl %ds
-	pushl %es
-	pushl %fs
-	pushl %gs
-
-	pushl %esp
-	push (interruptNumber)
-	call _ZN16InterruptManager15handleInterruptEhj
-	addl $5, %esp
-	movl %eax, %esp
-	
-	popl %gs
-	popl %fs
-	popl %es
-	popl %ds
-	popa
-	
-_ZN16InterruptManager22ignoreInterruptRequestEv:
-	
+keyboard_handler:                 
+	call keyboard_handler_main
 	iret
 	
-.data
-	interruptNumber: .byte 0
+read_port:
+	movl 4(%esp), %edx
+	inb  %dx, %al	
+	ret
+
+write_port:
+	movl   4(%esp), %edx
+	movb   8(%esp), %al
+	outb   %al, %dx  
+	ret

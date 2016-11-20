@@ -9,14 +9,14 @@
 
 .section .text
 .extern kmain
-.extern callConstructors
+# .extern callConstructors
 .global loader
 
 
 loader:
 	mov $kstack, %esp
 	
-	call callConstructors
+	# call callConstructors
 	
 	push %eax
 	push %ebx

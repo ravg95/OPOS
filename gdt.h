@@ -1,7 +1,11 @@
 #ifndef __GDT_H
 #define __GDT_H
 
-#include <stdint.h>
+#include "types.h"
+
+#ifndef MB
+#define MB 1024*1024
+#endif
 
 class GlobalDescriptorTable {
 public:

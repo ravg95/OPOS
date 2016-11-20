@@ -1,7 +1,6 @@
 #ifndef __OSTREAM_H
 #define __OSTREAM_H
-#include "stddef.h"
-#include "stdint.h"
+#include "types.h"
 
 enum vga_color {
 	VGA_COLOR_BLACK = 0,
@@ -49,4 +48,5 @@ private:
 	size_t terminal_row;
 	uint8_t terminal_color;
 };
+extern ostream out;
 #endif

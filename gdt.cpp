@@ -1,8 +1,6 @@
 
 #include "gdt.h"
-#ifndef MB
-#define MB 1024*1024
-#endif
+
 
 GlobalDescriptorTable::GlobalDescriptorTable() :
 nullSegmentSelector(0,0,0),
@@ -13,8 +11,8 @@ dataSegmentSelector(0,64*MB,0x92) {
 	uint32_t i[2];
 	i[0] = (uint32_t)this;
 	i[1] = sizeof(GlobalDescriptorTable)<<16;
-	
-	asm volatile("lgdt (%0)": :"r" (((uint8_t *) i)+2));
+	asm volatile("cli");
+	asm volatile("lgdt (%0)": :"p"(((uint8_t *) i)+2));
 }
 GlobalDescriptorTable::~GlobalDescriptorTable(){
 	//empty for now

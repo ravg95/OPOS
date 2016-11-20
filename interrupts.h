@@ -1,51 +1,31 @@
 
 #ifndef __INTERRUPTS_H
 #define __INTERRUPTS_H
-#include "stdint.h"
-#include "port.h"
-#include "gdt.h"
+#include "types.h"
+#define IDT_SIZE 256
 
-	class InterruptManager{
-	protected:
-		struct GateDescriptor{
-			uint16_t handlerAddressLowBits;
-			uint16_t gdt_codeSegmentSelector;
-			uint8_t reserved;
-			uint8_t access;
-			uint16_t handlerAddressHighBits;
-			
-		} __attribute__((packed));
-		
-		static GateDescriptor interruptDescriptorTable[256];
-		
-		struct InterruptDescriptorTablePointer {
-			uint16_t size;
-			uint32_t base;
-		} __attribute__((packed));
-		
-		static void setInterruptDescriptorTableEntry(
-		uint8_t interruptNumber,
-		uint16_t codeSegmentSelectorOffset,
-		void (*handler)(),
-			uint8_t DescriptorPrivilegeLevel,
-			uint8_t DescriptorType
-		);
-		
-		Port8BitSlow picMasterCommand;
-		Port8BitSlow picMasterData;
-		Port8BitSlow picSlaveCommand;
-		Port8BitSlow picSlaveData;
-	public:
-		
-		InterruptManager(GlobalDescriptorTable* gdt);
-		~InterruptManager();
-		void Activate();
-		static uint32_t handleInterrupt(uint8_t interruptNumber, uint32_t esp);
-		
-		static void ignoreInterruptRequest();
-		static void handleInterruptRequest0x00();
-		static void handleInterruptRequest0x01();
-	};
+struct IDT_entry{
+	unsigned short int offset_lowerbits;
+	unsigned short int selector;
+	unsigned char zero;
+	unsigned char type_attr;
+	unsigned short int offset_higherbits;
+};
 
 
+
+struct IDT_ptr {
+    uint16_t limit;
+    uint32_t base;
+} __attribute__((packed));
+
+void idt_init();
+extern "C" void keyboard_handler_main();
+void kb_init();
+
+extern void load_idt(struct IDT_ptr)  __asm__("load_idt");
+extern void keyboard_handler()  __asm__("keyboard_handler");
+
+extern "C" int8_t read_port(int16_t address);
+extern "C" void write_port(int16_t address, int8_t data);
 #endif
