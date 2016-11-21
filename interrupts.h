@@ -14,16 +14,13 @@ struct IDT_entry{
 
 
 
-struct IDT_ptr {
-    uint16_t limit;
-    uint32_t base;
-} __attribute__((packed));
+
 
 void idt_init();
 extern "C" void keyboard_handler_main();
 void kb_init();
 
-extern void load_idt(struct IDT_ptr)  __asm__("load_idt");
+extern void load_idt(void* idt_ptr)  __asm__("load_idt");
 extern void keyboard_handler()  __asm__("keyboard_handler");
 
 extern "C" int8_t read_port(int16_t address);

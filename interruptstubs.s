@@ -8,18 +8,17 @@
 .global keyboard_handler
 
 .global read_port
-.extern read_port
 .global write_port
-.extern write_port
 
 load_idt:
-	lidt 4(%esp)
+	mov 4(%esp), %edx
+	lidt (%edx)
 	sti
 	ret
 
 keyboard_handler:                 
 	call keyboard_handler_main
-	iret
+	#iret
 	
 read_port:
 	movl 4(%esp), %edx

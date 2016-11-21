@@ -46,8 +46,8 @@ struct IDT_entry IDT[IDT_SIZE];
 void idt_init(void)
 {
 	uint32_t keyboard_address;
-	unsigned long idt_address;
-	struct IDT_ptr idt_ptr;
+	uint32_t idt_address;
+	uint32_t idt_ptr[2];
 
 	/* populate IDT entry of keyboard's interrupt */
 	keyboard_address = (uint32_t) keyboard_handler; 
@@ -90,9 +90,9 @@ void idt_init(void)
 	write_port(0xA1 , 0xff);
 
 	/* fill the IDT descriptor */
-	idt_address = (unsigned long)IDT ;
-	idt_ptr.limit = (sizeof (struct IDT_entry) * IDT_SIZE) + ((idt_address & 0xffff) << 16);
-	idt_ptr.base = idt_address >> 16 ;
+	idt_address = (uint32_t)IDT ;
+	idt_ptr[0] = (sizeof (struct IDT_entry) * IDT_SIZE) + ((idt_address & 0xffff) << 16);
+	idt_ptr[1] = idt_address >> 16 ;
 
 	load_idt(idt_ptr);
 }
@@ -100,6 +100,7 @@ void kb_init(void)
 {
 	/* 0xFD is 11111101 - enables only IRQ1 (keyboard)*/
 	write_port(0x21 , 0xFD);
+	write_port(0xA1 , 0xFD);
 }
 
 
