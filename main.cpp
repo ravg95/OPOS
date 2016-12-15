@@ -2,8 +2,9 @@
 #include "stdint.h"
 #include "ostream.h"
 
-#include "gdt.h"
-#include "interrupts.h"
+extern "C" {
+	#include "gdt.h"
+}
 
 void delay(int countdown_limit) {
 	volatile int w = 0;
@@ -51,15 +52,9 @@ extern "C" void callConstructors(){
 
 
 extern "C" void kmain(const void* multiboot_struct, uint32_t magic_num) {
-	
-	
+	gdt_install();
 	printHelloMessage();
-	GlobalDescriptorTable gdt;
 	
-	InterruptManager interrupts(&gdt);
-	
-	interrupts.Activate();
-
 	while (1){
 		delay(10000);
 	};
