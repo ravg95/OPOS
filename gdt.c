@@ -30,21 +30,7 @@ struct gdt_ptr gp;
 
 /* This will be a function in start.asm. We use this to properly
 *  reload the new segment registers */
- void gdt_flush()
- {
-	
-	asm("lgdt [gp]"
-		"mov $0x10,%ax"
-		"mov %ax, %ds"
-		"mov %ax, %es"
-		"mov %ax, %fs"
-		"mov %ax, %gs"
-		"mov %ax, %ss"
-		"jmp 0x8"
-		"ret"
-		:[gp] "=r" (gp)
-		);
-}
+extern void gdt_flush();
 
 /* Setup a descriptor in the Global Descriptor Table */
 void gdt_set_gate(int num, unsigned long base, unsigned long limit, unsigned char access, unsigned char gran)
