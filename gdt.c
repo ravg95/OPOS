@@ -1,80 +1,74 @@
+/** @author Levente Kurusa <levex@linux.com> **/
 #include "gdt.h"
-     #ifndef __GNUC__
-     #define __asm__ asm
-     #endif
 
-/* Defines a GDT entry. We say packed, because it prevents the
-*  compiler from doing things that it thinks is best: Prevent
-*  compiler "optimization" by packing */
-struct gdt_entry
+#include <stdint.h>
+
+extern void _set_gdtr();
+extern void _reload_segments();
+
+static uint32_t gdt_pointer = 0;
+static uint32_t  gdt_size = 0;
+static uint32_t gdtr_loc = 0;
+
+static uint32_t highpart = 0;
+static uint32_t lowpart = 0;
+
+void gdt_init()
 {
-	unsigned short limit_low;
-	unsigned short base_low;
-	unsigned char base_middle;
-	unsigned char access;
-	unsigned char granularity;
-	unsigned char base_high;
-} __attribute__((packed));
-
-/* Special pointer which includes the limit: The max bytes
-*  taken up by the GDT, minus 1. Again, this NEEDS to be packed */
-struct gdt_ptr
-{
-	unsigned short limit;
-	unsigned int base;
-} __attribute__((packed));
-
-/* Our GDT, with 3 entries, and finally our special GDT pointer */
-struct gdt_entry gdt[3];
-struct gdt_ptr gp;
-
-/* This will be a function in start.asm. We use this to properly
-*  reload the new segment registers */
-extern void gdt_flush();
-
-/* Setup a descriptor in the Global Descriptor Table */
-void gdt_set_gate(int num, unsigned long base, unsigned long limit, unsigned char access, unsigned char gran)
-{
-	/* Setup the descriptor base address */
-	gdt[num].base_low = (base & 0xFFFF);
-	gdt[num].base_middle = (base >> 16) & 0xFF;
-	gdt[num].base_high = (base >> 24) & 0xFF;
-
-	/* Setup the descriptor limits */
-	gdt[num].limit_low = (limit & 0xFFFF);
-	gdt[num].granularity = ((limit >> 16) & 0x0F);
-
-	/* Finally, set up the granularity and access flags */
-	gdt[num].granularity |= (gran & 0xF0);
-	gdt[num].access = access;
+	gdt_pointer = 0x806; // start GDT data at 4MB
+	//mprint("location of GDT: 0x%x\n", gdt_pointer);
+	gdtr_loc =    0x800;
+	//mprint("location of GDTR: 0x%x\n", gdtr_loc);
+	gdt_add_descriptor(0, 0);
+	gdt_add_descriptor(1, 0x00CF9A000000FFFF);
+	gdt_add_descriptor(2, 0x00CF92000000FFFF);
+	gdt_add_descriptor(3, 0x008FFA000000FFFF); // 16bit code pl3
+	gdt_set_descriptor(4, 0x008FF2000000FFFF); // 16bit data pl3
+	//mprint("Global Descriptor Table is alive.\n");
 }
 
-/* Should be called by main. This will setup the special GDT
-*  pointer, set up the first 3 entries in our GDT, and then
-*  finally call gdt_flush() in our assembler file in order
-*  to tell the processor where the new GDT is and update the
-*  new segment registers */
-void gdt_install()
+int gdt_set_descriptor()
 {
-	/* Setup the GDT pointer and limit */
-	gp.limit = (sizeof(struct gdt_entry) * 3) - 1;
-	gp.base = (unsigned int)&gdt;
+	/* GDTR
+	 * 0-1 = SIZE - 1
+	 * 2-5 = OFFSET
+	 */
+	*(uint16_t*)gdtr_loc = (gdt_size - 1) & 0x0000FFFF;
+	gdtr_loc += 2;
+	*(uint32_t*)gdtr_loc = gdt_pointer;
+	_set_gdtr();
+	//mprint("GDTR was set. gdtr.size=%d gdtr.offset=0x%x\n", 
+		//*(uint16_t*)(gdtr_loc-2) + 1, 
+		//*(uint32_t*)gdtr_loc);
+	_reload_segments();
+	//mprint("Segments reloaded.\n");
+	return 0;
+}
 
-	/* Our NULL descriptor */
-	gdt_set_gate(0, 0, 0, 0, 0);
+int gdt_add_descriptor(uint8_t id, uint64_t desc)
+{
+	uint32_t loc = gdt_pointer + sizeof(uint64_t)*id;
+	*(uint64_t*)loc = desc;
+	//mprint("Added entry %d = 0x%x << 32 | 0x%x\n", id, (*(uint64_t*)loc) >> 32, *(uint32_t*)loc+4);
+	gdt_size += sizeof(desc);
+	return 0;
+}
 
-	/* The second entry is our Code Segment. The base address
-	*  is 0, the limit is 4GBytes, it uses 4KByte granularity,
-	*  uses 32-bit opcodes, and is a Code Segment descriptor.
-	*  Please check the table above in the tutorial in order
-	*  to see exactly what each value means */
-	gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF);
+uint64_t gdt_create_descriptor(uint32_t base, uint32_t limit, uint16_t flag)
+{
+	uint64_t desc = 0;
+	highpart = 0;
+	lowpart = 0;
+	desc = limit 		& 0x000F0000;
+	desc |= (flag << 8) 	& 0x00F0FF00;
+	desc |= (base >> 16) 	& 0x000000FF;
+	desc |= base		& 0xFF000000;
+	
+	highpart = desc;
+	desc <<= 32;
 
-	/* The third entry is our Data Segment. It's EXACTLY the
-	*  same as our code segment, but the descriptor type in
-	*  this entry's access byte says it's a Data Segment */
-	gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0xCF);
-
-	/* Flush out the old GDT and install the new changes! */
-	gdt_flush();
+	desc |= base << 16;
+	desc |= limit		& 0x0000FFFF;
+	lowpart = (uint32_t)desc;
+	return desc;
 }

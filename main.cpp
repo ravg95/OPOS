@@ -4,6 +4,7 @@
 
 extern "C" {
 	#include "gdt.h"
+	#include "idt.h"
 }
 
 void delay(int countdown_limit) {
@@ -52,7 +53,8 @@ extern "C" void callConstructors(){
 
 
 extern "C" void kmain(const void* multiboot_struct, uint32_t magic_num) {
-	gdt_install();
+	gdt_init();
+	idt_init();
 	printHelloMessage();
 	
 	while (1){
