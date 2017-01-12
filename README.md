@@ -3,7 +3,11 @@
 
 To configure your enviroment, please install the following packages:
 
-`$ apt install g++ binutils libc6-dev-i386`
+`$ apt install g++ binutils libc6-dev-i386
+
+This works:
+https://github.com/Cheapskate01/Cross-Compiler-Build-Script
+Download, run with i386-elf as the target, add the resulting folders to your PATH. 
 
 I think it's best to test our OS on virtualbox so you must additionally install:
 
