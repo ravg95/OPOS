@@ -118,17 +118,17 @@ void keyboard_handler()
 
 	uint8_t scancode = inportb(0x60);
 
-	if (scancode & 0x80)
+	if (scancode & KEYBOARD_MASK_SPECIAL)
 	{
-		if (scancode == 0xAA || scancode == 0xB6)
+		if (scancode == KEYBOARD_KEYCODE_LSHIFT_RELEASE || scancode == KEYBOARD_KEYCODE_RSHIFT_RELEASE)
 			shift = false;
 	}
 	else
 	{
-		if (scancode == 0x2A || scancode == 0x36)
+		if (scancode == KEYBOARD_KEYCODE_LSHIFT_PRESS || scancode == KEYBOARD_KEYCODE_RSHIFT_PRESS)
 			shift = true;
 		
-		if (scancode == 0x3A)
+		if (scancode == KEYBOARD_KEYCODE_CAPSLOCK)
 			caps = !caps;
 
 

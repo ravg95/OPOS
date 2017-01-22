@@ -12,11 +12,11 @@
 #include "shell.h"
 
 #if defined(__linux__)
-#error "Na skompilovanie nebol pouzity cross-compiler."
+#error "Nie skompilowano cross-compiler'em."
 #endif
 
 #if !defined(__i386__)
-#error "Kernel musi byt skompilovany cross-compilerom."
+#error "Kernel musi byc skompilowany cross-compiler'em."
 #endif
 
 //Entry point for kernel

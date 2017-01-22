@@ -43,7 +43,7 @@ char* shell_bufferread()
 
 void shell_clear()
 {
-    terminal_writestring("mato:myos/$ ");
+    terminal_writestring("OPOS/$ ");
     shell_bufferclear();
 }
 
@@ -55,8 +55,8 @@ void shell_exit()
 
 void shell_command_help(int argc, char *argv[])
 {
-    terminal_writestring("Syntax: help <prikaz>\n");
-    terminal_writestring("clear -> Vycisti obrazovku\n");
+    terminal_writestring("Syntax: help <option>\n");
+    terminal_writestring("clear -> cleans the view\n");
 }
 
 void shell_command_clear()
@@ -72,7 +72,7 @@ void shell_command_color(int argc, char *argv[])
         uint8_t bg = atoi(argv[2]);
         terminal_setcolor(make_color_s(fg, bg));
     } else {
-        terminal_writestring("Zadal si nepravny pocet argumentov: ");
+        terminal_writestring("Invalid number of arguemnts: ");
         terminal_writestring(itoa(argc, 10));
         terminal_putchar('\n');
     }
@@ -150,7 +150,7 @@ void shell_interpreter(char *command)
     else
     {
         terminal_writestring(argv[0]);
-        terminal_writestring(": Prikaz nebol najdeny\n");
+        terminal_writestring(": Command not found\n");
     }
 
     shell_clear();
@@ -158,8 +158,8 @@ void shell_interpreter(char *command)
 
 void InitializeShell()
 {
-    terminal_writestring("MatoOS\n");
-    terminal_writestring("Pre pomoc pouzi prikaz help\n");
+    terminal_writestring("OPOS\n");
+    terminal_writestring("For help, type: \"help\" and return\n");
 
     shell_clear();
 
