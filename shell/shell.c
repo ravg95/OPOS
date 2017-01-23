@@ -91,6 +91,22 @@ void shell_command_exit()
     terminal_writestring("[+]Exiting...");
 }
 
+void shell_command_credits()
+{
+    terminal_writestring("OPOS, the Overwhelmingly Poor Operating System\n");
+	terminal_writestring("By Vic, Ravg and JSan\n");
+	terminal_writestring("Shoutouts to Simpleflips\n");
+}
+
+void shell_command_time()
+{
+    terminal_writestring("The timer has ticked ");
+	terminal_writestring(itoa(timer_gettick(),10));
+	terminal_writestring(" times since the iniciatialization.\n");
+}
+
+
+
 void shell_interpreter(char *command)
 {
     int argc = 0;
@@ -143,6 +159,14 @@ void shell_interpreter(char *command)
     {
         shell_command_exit();
     }
+	else if (strcmp(argv[0], "credits") == 0)
+	{
+		shell_command_credits();
+	}
+	else if (strcmp(argv[0], "time") == 0)
+	{
+		shell_command_time();
+	}
     else if (strcmp(argv[0], "") == 0)
     {
         //Do nothing
@@ -165,7 +189,7 @@ void InitializeShell()
 
     running = true;
 
-    while(running)
+    while(running) //will probably need to parallelize it later
     {
         char c;
 

@@ -31,7 +31,7 @@ void kernel_main()
 	terminal_writestring("[+]Initialization of IDT\n");
 	InitializeIDT();
 
-    terminal_writestring("[+]Initialization of Timer\n");
+    terminal_writestring("[+]Initialization of Timer at a frequency of 50Hz\n");
     InitializeTimer(50);
 
 	terminal_writestring("[+]Initialization of Keyboard\n");
