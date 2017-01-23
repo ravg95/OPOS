@@ -55,8 +55,37 @@ void shell_exit()
 
 void shell_command_help(int argc, char *argv[])
 {
-    terminal_writestring("Syntax: help <option>\n");
-    terminal_writestring("clear -> cleans the view\n");
+	if(strcmp(argv[0], "clear") == 0)
+	{
+		terminal_writestring("clear -> cleans the view\n");
+	}
+	else if(strcmp(argv[0], "color") == 0)
+	{
+		terminal_writestring("color [fg] [bg] -> changes terminal color\n");
+		terminal_writestring("fg -> foreground color\nbg -> background color");
+	}
+	else if(strcmp(argv[0], "test") == 0)
+	{
+		terminal_writestring("test [string] -> echoes given string\n")
+	}
+	else if(strcmp(argv[0], "timer") == 0)
+	{
+		terminal_writesrting("timer -> displays timer status\n")
+	}
+	else if(strcmp(argv[0], "credits") == 0)
+	{
+		terminal_writesrting("credits -> who made this")
+	}
+	else if(strcmp(argv[0], "exit") == 0)
+	{
+		
+	}
+	else
+	{
+		terminal_writestring("Syntax: help <option>\n");
+		terminal_writestring("Possible commands:\n");
+		terminal_writestring("clear color test timer credits exit")
+	}  
 }
 
 void shell_command_clear()
