@@ -66,15 +66,15 @@ void shell_command_help(int argc, char *argv[])
 	}
 	else if(strcmp(argv[0], "test") == 0)
 	{
-		terminal_writestring("test [string] -> echoes given string\n")
+		terminal_writestring("test [string] -> echoes given string\n");
 	}
 	else if(strcmp(argv[0], "timer") == 0)
 	{
-		terminal_writesrting("timer -> displays timer status\n")
+		terminal_writestring("timer -> displays timer status\n");
 	}
 	else if(strcmp(argv[0], "credits") == 0)
 	{
-		terminal_writesrting("credits -> who made this")
+		terminal_writestring("credits -> who made this");
 	}
 	else if(strcmp(argv[0], "exit") == 0)
 	{
@@ -84,7 +84,7 @@ void shell_command_help(int argc, char *argv[])
 	{
 		terminal_writestring("Syntax: help <option>\n");
 		terminal_writestring("Possible commands:\n");
-		terminal_writestring("clear color test timer credits exit")
+		terminal_writestring("clear color test timer credits exit\n");
 	}  
 }
 
@@ -188,14 +188,14 @@ void shell_interpreter(char *command)
     {
         shell_command_exit();
     }
-	else if (strcmp(argv[0], "credits") == 0)
-	{
-		shell_command_credits();
-	}
-	else if (strcmp(argv[0], "time") == 0)
-	{
-		shell_command_time();
-	}
+    else if (strcmp(argv[0], "credits") == 0)
+    {
+            shell_command_credits();
+    }
+    else if (strcmp(argv[0], "time") == 0)
+    {
+            shell_command_time();
+    }
     else if (strcmp(argv[0], "") == 0)
     {
         //Do nothing
